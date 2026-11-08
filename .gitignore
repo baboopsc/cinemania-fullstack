@@ -1,3 +1,13 @@
+# Bağımlılıklar
 node_modules/
-backend/node_modules/
-frontend/node_modules/
+
+# Gizli bilgiler (asla GitHub'a yüklemeyin)
+.env
+.env.*
+!.env.example
+
+# Derleme çıktıları ve yerel veritabanı
+dist/
+coverage/
+*.sqlite
+*.tsbuildinfo

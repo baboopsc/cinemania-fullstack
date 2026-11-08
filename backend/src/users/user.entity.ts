@@ -12,7 +12,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  // Hata veren kısım burasıydı, eksik kalmış. Şuan tam!
+  // Bir kullanıcının birden çok yorumu olabilir
   @OneToMany(() => Comment, (comment) => comment.user)
   comments: Comment[];
 }

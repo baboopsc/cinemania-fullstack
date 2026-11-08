@@ -1,0 +1,59 @@
+name: Backend CI
+
+on:
+  push:
+    paths: ["backend/**", ".github/workflows/backend-ci.yml"]
+  pull_request:
+    paths: ["backend/**", ".github/workflows/backend-ci.yml"]
+
+jobs:
+  test:
+    name: Build and test (${{ matrix.database }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        database: [sqlite, postgres]
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: cinemania
+          POSTGRES_PASSWORD: cinemania
+          POSTGRES_DB: cinemania_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cinemania"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+      - run: npm run build
+      - name: Unit tests
+        run: npm test
+      - name: End-to-end tests
+        run: npm run test:e2e
+        env:
+          DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgresql://cinemania:cinemania@localhost:5432/cinemania_test' || '' }}
+
+  docker:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t cinemania-api ./backend
